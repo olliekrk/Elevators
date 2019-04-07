@@ -248,6 +248,30 @@ For example:
 >
 > Whereas, the Scanner algorithm would chose 8->10->12->1 order, which would cost 2 + 2 + 11 = 15 steps (+ steps required to open/close the door)
 
+### 4. Summary comparision
+
+**FCFS** scheduler offers very simple scheduling strategy, however its performance is worse than **Scanner** scheduler in most cases.
+It is especially ineffective in cases when an elevator receives requests from upper and lower floors alternately.
+Another disadvantage of this approach is that the choice of enqueuing each request is made regardless of the requested direction (up/down).
+The only factor significant for this scheduler is the order of received requests.
+
+In this simulation I did not take into account fact that elevators have limited passengers capacity.
+Whereas, using this scheduler in real building might result in overflowed elevators going into directions not requested by the passengers already inside.
+Because of that, passengers awaiting for elevator on the floor will be more likely to be unable to enter busy elevators.
+In fact, they would have to call the elevator again and hope that the next time there is enough space to pick them up. 
+
+**Scanner** scheduler uses more complex strategy to store requests in queues in specific order.
+It analyzes the current direction in which the elevator is moving and does not switch directions until every request in current direction is completed.
+Because of this rule, it is able to pick up new passengers on the way, and also stop on floors to let off passengers which are inside.
+This scheduler is advantageous over FCFS in most cases, because it includes the information about requested direction, when assigning requests to elevators.
+By that it is able to plan the best path after every new request and rearrange enqueued requests to shorten average request completion time.
+
+A possible drawback of this approach is that it requires more computation to choose the optimal elevator.
+Another disadvantage is that passengers from recently visited floors may have to wait for up to two direction switches, which is more than average.
+On the contrary, there is a lower risk comparing to FCFS, of an elevator being overflowed with passengers and unable to pick up new requests.
+
+In general, if the key is simplicity - pick the **FCFS** strategy. Otherwise pick **Scanner** - especially if the elevators have limited load and the system should take that fact into account.
+
 ***Modifications possible to apply to SchedulerScanner***
  
 * When choosing an elevator to receive external pickup request choose elevators in this order
