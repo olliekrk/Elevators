@@ -21,51 +21,6 @@ public class Simulation {
     private static final int ELEVATORS_NO = 5;
     private static final int FLOORS_NO = 20;
 
-    private static List<Request> generateRequests(int recordsCount) {
-        Random rand = new Random();
-        List<Request> requests = new ArrayList<>(recordsCount);
-        for (int i = 0; i < recordsCount; i++) {
-            int type = rand.nextInt(3);
-            Request request = null;
-            switch (type) {
-                case 0:
-                    request = RequestFactory.createUpRequest(rand.nextInt(FLOORS_NO + 1));
-                    break;
-                case 1:
-                    request = RequestFactory.createDownRequest(rand.nextInt(FLOORS_NO + 1));
-                    break;
-                case 2:
-                    request = RequestFactory.createFloorRequest(rand.nextInt(ELEVATORS_NO), rand.nextInt(FLOORS_NO + 1));
-                    break;
-            }
-            if (request != null)
-                requests.add(request);
-        }
-        return requests;
-    }
-
-    private static void addRequests(ElevatorsSystem system, List<Request> requests) {
-        for (Request request : requests)
-            system.enqueueRequest(request);
-    }
-
-    private static void printSimulationResults(int stepsFCFS, int stepsScanner, int totalRequestsCount) {
-        System.out.println("---");
-        System.out.println("Simulation summary:");
-        System.out.println("---");
-        System.out.println("Elevators: " + ELEVATORS_NO);
-        System.out.println("Floors: " + FLOORS_NO);
-        System.out.println("Total number of requests received: " + totalRequestsCount);
-        System.out.println("---");
-        System.out.println("Total steps FC-FS: " + stepsFCFS);
-        System.out.printf("Average steps per request: %.3f\n", (double) stepsFCFS / totalRequestsCount);
-        System.out.println("---");
-        System.out.println("Total steps Scanner: " + stepsScanner);
-        System.out.printf("Average steps per request: %.3f\n", (double) stepsScanner / totalRequestsCount);
-    }
-
-    private static final String usage = "Type one of the following options:\n\tgenerate\n\tstep\n\tstatus\n\tend\n\tusage\n";
-
     public static void main(String[] args) {
         ElevatorsSystem systemFCFS = new ElevatorsSystem(new SchedulerFCFS());
         ElevatorsSystem systemScanner = new ElevatorsSystem(new SchedulerScanner());
@@ -149,4 +104,49 @@ public class Simulation {
 
         printSimulationResults(stepsFCFS, stepsScanner, totalRequestsCount);
     }
+
+    private static List<Request> generateRequests(int recordsCount) {
+        Random rand = new Random();
+        List<Request> requests = new ArrayList<>(recordsCount);
+        for (int i = 0; i < recordsCount; i++) {
+            int type = rand.nextInt(3);
+            Request request = null;
+            switch (type) {
+                case 0:
+                    request = RequestFactory.createUpRequest(rand.nextInt(FLOORS_NO + 1));
+                    break;
+                case 1:
+                    request = RequestFactory.createDownRequest(rand.nextInt(FLOORS_NO + 1));
+                    break;
+                case 2:
+                    request = RequestFactory.createFloorRequest(rand.nextInt(ELEVATORS_NO), rand.nextInt(FLOORS_NO + 1));
+                    break;
+            }
+            if (request != null)
+                requests.add(request);
+        }
+        return requests;
+    }
+
+    private static void addRequests(ElevatorsSystem system, List<Request> requests) {
+        for (Request request : requests)
+            system.enqueueRequest(request);
+    }
+
+    private static void printSimulationResults(int stepsFCFS, int stepsScanner, int totalRequestsCount) {
+        System.out.println("---");
+        System.out.println("Simulation summary:");
+        System.out.println("---");
+        System.out.println("Elevators: " + ELEVATORS_NO);
+        System.out.println("Floors: " + FLOORS_NO);
+        System.out.println("Total number of requests received: " + totalRequestsCount);
+        System.out.println("---");
+        System.out.println("Total steps FC-FS: " + stepsFCFS);
+        System.out.printf("Average steps per request: %.3f\n", (double) stepsFCFS / totalRequestsCount);
+        System.out.println("---");
+        System.out.println("Total steps Scanner: " + stepsScanner);
+        System.out.printf("Average steps per request: %.3f\n", (double) stepsScanner / totalRequestsCount);
+    }
+
+    private static final String usage = "Type one of the following options:\n\tgenerate\n\tstep\n\tstatus\n\tend\n\tusage\n";
 }
