@@ -1,12 +1,14 @@
 # Elevators System Project
 
-> Elevators Control System design project.
+> Problem: Design an elevators system.
 
 ## Prerequisites
 
-To use this repository all you need is to have JDK 10 and JUnit 4 installed.
+To use this repository all you need is to have JDK 10 (+ eventually JUnit 4) installed.
 
 To see an quick example of how the system works there is an **ExampleApp** class with main method, where basic features are shown.
+
+To run a simple, yet interactive simulation in which two used approaches to the problem are shown, run the main method of **Simulation** class.
 
 ## Usage
 
@@ -32,10 +34,10 @@ ElevatorsSystem elevatorsSystem1 = new ElevatorsSystem(new SchedulerScanner());
 **ElevatorsScheduler** is the interface responsible for scheduling requests for elevators in the right manner.
 
 This project provides two different ElevatorsScheduler interface implementations, which are:
-- *SchedulerFCFS*
-- *SchedulerScanner*
+- **SchedulerFCFS**
+- **SchedulerScanner**
 
-ElevatorsScheduler is a part of a "**Strategy**" design pattern, which was used for this project.
+ElevatorsScheduler is a part of a "*Strategy*" design pattern, which was used for this project.
 
 Both implementations will be later discussed in this document.
 
@@ -51,7 +53,12 @@ The limit of register elevators is set to 16.
 
 An class representing physical elevator is the **Elevator** class and class responsible for storing received requests in the queue and reading them is **ElevatorController**.
 
-These two, alongside with **ElevatorStatus** are sort of a simplified "**Model-View-Controller**" design pattern implementation.
+The ElevatorController can depending on what is the next request in the queue:
+* open elevator door & remove completed requests
+* close elevator door
+* move elevator one floor up or down
+
+These two, alongside with **ElevatorStatus** are sort of a simplified "*Model-View-Controller*" design pattern implementation.
 
 ### Creating a request for the system
 
@@ -62,12 +69,12 @@ Every Request consists of enum **RequestType** which can be:
 - DOWN (represents event of clicking 'down' button outside the elevator - pickup request)
 - FLOOR (represents event of clicking internal button inside the elevator)
 
-There are also additional request types, which are not necessary to use for basic operations:
-- RESTART (represents event of restarting given elevator)
-- EVACUATION (represents event of evacuating the whole building)
+There are also additional request types included, which are not necessary to use for basic operations:
+- RESTART (represents event of restarting given elevator - cancels previously enqueued requests and directs elevator to go to specific floor)
+- EVACUATION (represents event of evacuating the whole building - cancels previously enqueued requests and directs every elevator in the system to go to the ground floor)
 
 To create a new request it is advised to use **RequestFactory** class methods.
-RequestFactory is a part of "**Factory**" design pattern and it ensures that created requests are valid and safe to be enqueued.
+RequestFactory is a part of "*Factory*" design pattern and it ensures that created requests are valid and safe to be enqueued.
 
 Here is the example of creating new requests:
 ```java
@@ -82,6 +89,7 @@ Then, to pass the request to the ElevatorsSystem, we simply use method:
 ```java
 elevatorsSystem.enqueueRequest(floorRequest);
 ```
+In case there are some problems with enqueuing requests, the system will inform the user by throwing **ElevatorsSchedulerException** or **ElevatorsSystemException**. Possible cases when this may happen is when we want to enqueue the request but we haven't registered any elevator in the system yet.
 
 ### Running the simulation
 
@@ -91,7 +99,7 @@ elevatorsSystem.makeSimulationStep();
 ```
 >In this design, I assumed that following actions takes one step of simulation:
 >- passing one floor distance by elevator
->- opening elevator door and also releasing passengers
+>- opening elevator door and releasing passengers / picking up passengers
 >- closing elevator door
 
 ### Updating chosen elevator's status
@@ -110,8 +118,7 @@ To extract basic information (ID, current floor, destination floor) about every 
 List<ElevatorStatus> elevatorStatuses = elevatorsSystem.getElevatorsStatuses();
 ```
 **ElevatorStatus** is a container-class for storing the state in which elevator currently is.
-It contains only the basic information about elevator's ID, its current floor and its destination floor.
-
+It contains only the basic information about elevator's ID, its current floor and its destination floor, available by getters methods and overriden toString() method to display the status in readable form.
 
 ## Scheduling algorithms
 
@@ -121,8 +128,12 @@ With use of "Strategy" design pattern, I provided two implementations of **Eleva
 
 #### 1. SchedulerFCFS
 First scheduling algorithm was the FCFS, also known as first-come, first-served.
-This scheduler, simply enqueues requests in the order that they arrive.
-In this approach, requests the elevators system receive are enqueued to elevators in the following manner:
+
+Every ElevatorController has a queue, and the only operations it can perform are removing request from the start and adding request at the end. This scheduler simply enqueues requests in the order that they arrive.
+
+By this approach, it is guaranteed that the earlier the request came to the system scheduler, the earlier it is served.
+
+Due to that, requests the elevators system receive are enqueued to elevators in the following manner:
 
 **Internal requests**: *button pressed inside the elevator*:
 
@@ -134,26 +145,38 @@ Check if requested floor is already in the queue:
 
 For every elevator available in the system calculate how many steps will it take for this elevator to reach requested floor:
 - In calculation, take into account that opening and closing doors costs one simulation step
-- Choose elevator which will first finish all its requests first and reach requested floor
-- Put request at the end of a queue
+- Choose elevator controller which will first finish all its requests and reach requested floor
+- Put request at the end of a chosen's elevator's controller queue
 
-This ensures that any request which comes first will be executed before any request that comes after it.
+This behaviour ensures that any request which comes first will be executed before any request that comes after it.
 
 **Advantages of the FCFS**:
 - Relatively easy to implement
 - Clear and simple to understand
 - Every request, no matter at which floor, will get an equal chance to be served
-- Guarantees that every request will be served so there is no "requests starvation"
+- Guarantees that every request will be served so there is no infinite "requests starvation"
 
 **Disadvantages of the FCFS**:
 - Due to FIFO approach, it cannot pickup any requests "on the way"
 - Hence, requests from the floors between elevator's current floor and destination floor will have to be ignored and wait until all others are finished, which lengthens their awaiting time
 - May not provide the best possible requests order, especially if next two requests it receives are far from one another
+- Receiving ground floor and the highest floor requests alternately will starve every other request which is on the way
 
 #### 2. SchedulerScanner
-In this approach I tried to analyze, how to possibly optimize the average awaiting time for the request to be proceeded.
+
+The second scheduler I implemented is a "scanning" scheduler.
+
+The name "Scanner" cames from the fact that it behaves in a similar way to "SCAN" (or even more "LOOK") disk scheduling algorithm.
+
+In this approach, every elevator's queue is managed differently.
+The elevator always travels in its current direction to the furthest requested floor if the direction requested was the same as the direction the elevator is moving in.
+
+Alternatively speaking, it continues to travel travel in one direction until the queue is empty or all requests in this direction are completed.
+
+In contrast to FCFS, it can stop to pick up and release passengers on the way.
+
+I tried to analyze, how to possibly optimize the average awaiting time for the request to be proceeded.
 I also tried to group similar requests in the queues.
-By that, the elevator is able to complete them one after another, without travelling the end of an opposite direction if such request also arrived in the meantime.
 
 The second scheduling algorithm I implemented is a algorithm, which assigns the requests by the following manner:
 
@@ -164,8 +187,10 @@ Check if the same request (requested floor and requested direction) is already i
 - If the queue is empty, put this request as the first in the queue
 
 Otherwise search for a first sequence of requests in the queue, in which the elevator:
--  A) Passes the requested floor. If such sequence was found, then put the request in the queue so that elevator won't pass requested floor but will stop there
--  B) Moves towards the requested floor but then changes its direction to the opposite. If such sequence was found put the request in the queue before direction change occurs.
+- A.1. Passes the requested floor.
+- A.2. If such sequence was found, then put the request in the queue so that elevator won't pass requested floor but will stop there and let off the passengers
+- B.1. Moves towards the requested floor in requested direction but then changes its direction to the opposite.
+- B.2. If such sequence was found put the request in the queue before direction change occurs.
 
 If there are no such sequences, then simply add requested floor at the end of a queue.
 
@@ -174,11 +199,11 @@ If there are no such sequences, then simply add requested floor at the end of a 
 Check if there is any inactive (idle) elevator on requested floor:
 - If there is any, add request to its queue.
 
-If not, search for elevators which are moving towards requested floor in the same direction as the requested direction:
-- Do not take steps required for opening and closing doors into calculation
+If there are none of them, search for inactive (idle) elevators on other floors:
 - If there are any, pick the one which is closest to requested floor
 
-If there are none of them, search for inactive (idle) elevators on other floors:
+If not, search for elevators which are moving towards requested floor in the same direction as the requested direction:
+- Do not take steps required for opening and closing doors into calculation!
 - If there are any, pick the one which is closest to requested floor
 
 If there are also none of them, then for each elevator calculate how many steps will it take for it to reach elevator floor in described "scanning" manner
@@ -192,11 +217,11 @@ Check if the same request (requested floor and requested direction) is already i
 - If such request is already in the queue, do nothing
 - If the queue is empty, put this request as the first in the queue
 
-Otherwise search for a first sequence of requests in the queue, in which the elevator:
-- A) Passes the requested floor (in the same direction as requested!).
-- If such sequence was found, then put the request in the queue so that elevator won't pass requested floor but will stop there
-- B) Moves towards the requested floor (in the same direction as requested!) but then changes its direction.
-- If such sequence was found put the request in the queue before direction change occurs.
+Otherwise search for a first sequence of requests in the queue, in which the elevator (case A or case B):
+- A.1. Passes the requested floor (in the same direction as requested!).
+- A.2. If such sequence was found, then put the request in the queue so that elevator won't pass requested floor but will stop there
+- B.1. Moves towards the requested floor (in the same direction as requested!) but then changes its direction to the opposite
+- B.2. If such sequence was found put the request in the queue before direction change occurs.
 
 Otherwise put it at the end of the queue.
 
@@ -209,8 +234,10 @@ Otherwise put it at the end of the queue.
 
 **Disadvantages of this approach**:
 - The algorithm is much more complex and not so simple to understand
-- Requests from recently passed floors may have to wait for one or two direction changes to be served
-- Requests from floors more distant from elevators may have to wait longer than average 
+- Requests from recently passed floors may have to wait for up to two direction changes occurs to be served
+- Requests from floors more distant from elevators may have to wait longer than average awaiting time
+- The order of requests is not maintained
+- More advanced operations on enqueued elements need to be performed
 
 #### 3. Case when the SchedulerScanner is better than SchedulerFCFS
 
@@ -220,6 +247,17 @@ For example:
 >The FCFS algorithm would go straight 8->10->1->12 order, which would cost 2 + 9 + 11 = 22 steps (+ steps required to open/close the door)
 >
 > Whereas, the Scanner algorithm would chose 8->10->12->1 order, which would cost 2 + 2 + 11 = 15 steps (+ steps required to open/close the door)
+
+***Modifications possible to apply to SchedulerScanner***
+ 
+* When choosing an elevator to receive external pickup request choose elevators in this order
+ (2 and 3 is switched compared to the original version)
+>1. Check for inactive elevator on the requested floor
+>2. Check for elevators moving towards requested floor in the requested direction
+>3. Check for inactive elevators on all other floors
+>4. Check for elevators which will reach requested floor first
+
+* Sort queue after every modification instead of looking for the right index to insert received request
 
 ## Simulation
 
@@ -264,18 +302,9 @@ They are located in the `test.olliekrk.elevators` package.
 
 There are still many things that could be improved in those tests, as they cover only simple cases.
 
-## Author
-* **Olgierd Królik** - [GitHub](https://github.com/olliekrk) - other projects
-
 # TODO
 * Add more unit & integration tests to cover more cases
 * *JavaDoc* improvements
 
-* ***Modifications to think about in SchedulerScanner***
- 
- When choosing an elevator to receive external pickup request choose elevators in this order
- (2 and 3 is switched compared to the original version)
->1. Check for inactive elevator on the requested floor
->2. Check for elevators moving towards requested floor in the requested direction
->3. Check for inactive elevators on all other floors
->4. Check for elevators which will reach requested floor first
+## Author
+* **Olgierd Królik** - [GitHub](https://github.com/olliekrk) - my projects
