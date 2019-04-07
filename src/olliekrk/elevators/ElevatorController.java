@@ -6,15 +6,22 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Class representing internal controller of an elevator.
+ * Class representing internal controller of an specific elevator.
  * Manages the model class {@link Elevator}, as it is a part of Model-View-Controller design pattern.
- * Receives requests from {@link ElevatorsSystem} which are inserted to requestsQueue.
+ * Receives requests from {@link ElevatorsSystem} which are inserted to its requestsQueue in specific order.
  * <p>
+ * The queue is the list of requests to be proceeded by elevator.
  * This controller is responsible for translating given requests to commands and controlling the elevator behaviour.
- * The queue is basically the lists of requests to be proceeded by elevator.
+ * Depending on what is the first request in the queue it can open or close elevator door, or else move one floor up or down.
  */
-public class ElevatorController {
+class ElevatorController {
+    /**
+     * Elevator controlled by this controller.
+     */
     private final Elevator elevator;
+    /**
+     * Queue of request to be completed.
+     */
     private List<Request> requestsQueue;
 
     ElevatorController(Elevator elevator) {
@@ -60,10 +67,10 @@ public class ElevatorController {
     }
 
     /**
-     * Method to simulate controller's behaviour.
-     * It reads first request from the list and then does the following.
-     * If queue is empty, it opens elevator doors and after that does nothing until new request comes.
-     * Otherwise, closes the door if they are opened and starts to move elevator towards requested floor.
+     * Method used for simulating controller's behaviour.
+     * It reads first request from the queue and then does the following:
+     * - If queue is empty, it opens elevator doors and after that does nothing until new request comes.
+     * - Otherwise, closes the door if they are opened and starts to move elevator towards requested floor.
      */
     void makeOneStep() {
         //case when there are no pending requests, idle state
@@ -97,8 +104,9 @@ public class ElevatorController {
 
     /**
      * Method for calculating distance in steps, from the elevator to given floor.
-     * If given floor is not in the queue, calculates how many steps will it take to finish the queue and then reach the floor.
      * It assumes that opening and closing door on floors cost one extra step.
+     * <p>
+     * If given floor is not in the queue, calculates how many steps will it take to finish the queue and then to reach the floor.
      *
      * @param floor floor to which distance is being checked
      * @return number of steps required to reach given floor

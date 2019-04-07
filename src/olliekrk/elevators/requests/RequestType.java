@@ -1,27 +1,29 @@
 package olliekrk.elevators.requests;
 
 /**
- * Represents types of requests supported by {@link olliekrk.elevators.ElevatorsSystem}.
+ * Represents types of requests {@link Request} supported by {@link olliekrk.elevators.ElevatorsSystem}.
  */
 public enum RequestType {
     /**
-     * External request for pickup with UP direction.
+     * External request for passenger pickup with UP direction.
      */
     UP,
     /**
-     * External request for pickup with DOWN direction.
+     * External request for passenger pickup with DOWN direction.
      */
     DOWN,
     /**
-     * Internal request for elevator to stop on specified floor.
+     * Internal request for specific elevator to stop on specific floor.
      */
     FLOOR,
     /**
-     * Internal request for elevator to restart elevator's queue and go to specified floor.
+     * Internal request for elevator to restart elevator's queue.
+     * Cancels all previously enqueued requests and makes elevator go to specific floor.
      */
     RESTART,
     /**
-     * External request for evacuation, causing every elevator to restart its queue and to go to floor 0.
+     * External request for evacuation.
+     * Causes every elevator in the system to restart its queue and to go to the ground floor.
      */
     EVACUATION
 }

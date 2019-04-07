@@ -19,14 +19,12 @@ import java.util.Scanner;
  */
 public class Simulation {
     private static final int ELEVATORS_NO = 5;
-    private static final int FLOORS_NO = 80;
-    private static final int REQUESTS_ADD_INTERVAL = 80;
-    private static final int REQUESTS_ADD_AMOUNT = 20;
+    private static final int FLOORS_NO = 20;
 
-    private static List<Request> generateRequests() {
+    private static List<Request> generateRequests(int recordsCount) {
         Random rand = new Random();
-        List<Request> requests = new ArrayList<>(REQUESTS_ADD_AMOUNT * 3);
-        for (int i = 0; i < REQUESTS_ADD_AMOUNT; i++) {
+        List<Request> requests = new ArrayList<>(recordsCount);
+        for (int i = 0; i < recordsCount; i++) {
             int type = rand.nextInt(3);
             Request request = null;
             switch (type) {
@@ -57,8 +55,6 @@ public class Simulation {
         System.out.println("---");
         System.out.println("Elevators: " + ELEVATORS_NO);
         System.out.println("Floors: " + FLOORS_NO);
-        System.out.println("Requests add amount: " + REQUESTS_ADD_AMOUNT);
-        System.out.println("New requests added every: " + REQUESTS_ADD_INTERVAL + " steps");
         System.out.println("Total number of requests received: " + totalRequestsCount);
         System.out.println("---");
         System.out.println("Total steps FC-FS: " + stepsFCFS);
@@ -86,46 +82,57 @@ public class Simulation {
             systemScanner.registerElevator(i, 0);
         }
 
-        boolean loop = true;
+        System.out.println(usage);
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println(usage);
+        boolean loop = true;
         while (loop) {
-            String option = scanner.next();
-            if (option.equals("generate")) {
-                requestsQueue = generateRequests();
-                addRequests(systemFCFS, requestsQueue);
-                addRequests(systemScanner, requestsQueue);
-                totalRequestsCount += requestsQueue.size();
+            try {
+                String option = scanner.next();
 
-            } else if (option.equals("step")) {
-                System.out.println("How many steps further would you like to proceed?");
-                int steps = scanner.nextInt();
-                for (int i = 0; i < steps; i++) {
-                    if (systemFCFS.isAnyRequestUnprocessed()) {
-                        systemFCFS.makeSimulationStep();
-                        stepsFCFS++;
+                if (option.equals("generate")) {
+                    System.out.println("How many records would you like to generate?");
+                    int recordsCount = Integer.parseInt(scanner.next());
+                    requestsQueue = generateRequests(recordsCount);
+                    addRequests(systemFCFS, requestsQueue);
+                    addRequests(systemScanner, requestsQueue);
+                    totalRequestsCount += requestsQueue.size();
+
+                } else if (option.equals("step")) {
+                    System.out.println("How many steps further would you like to proceed?");
+                    int steps = Integer.parseInt(scanner.next());
+                    for (int i = 0; i < steps; i++) {
+                        if (systemFCFS.isAnyRequestUnprocessed()) {
+                            systemFCFS.makeSimulationStep();
+                            stepsFCFS++;
+                        }
+                        if (systemScanner.isAnyRequestUnprocessed()) {
+                            systemScanner.makeSimulationStep();
+                            stepsScanner++;
+                        }
                     }
-                    if (systemScanner.isAnyRequestUnprocessed()) {
-                        systemScanner.makeSimulationStep();
-                        stepsScanner++;
-                    }
+
+                } else if (option.equals("status")) {
+                    System.out.print("---\nSystem with SchedulerFCFS status\n---\n");
+                    for (ElevatorStatus status : systemFCFS.getElevatorsStatuses())
+                        System.out.println(status);
+
+                    System.out.print("---\nSystem with SchedulerScanner status\n---\n");
+                    for (ElevatorStatus status : systemScanner.getElevatorsStatuses())
+                        System.out.println(status);
+
+                } else if (option.equals("end")) {
+                    loop = false;
+
+                } else if (option.equals("usage")) {
+                    System.out.println(usage);
+
+                } else {
+                    System.err.println("Unrecognized option.");
                 }
-            } else if (option.equals("status")) {
-                System.out.print("---\nSystem with SchedulerFCFS status\n---\n");
-                for (ElevatorStatus status : systemFCFS.getElevatorsStatuses())
-                    System.out.println(status);
-
-                System.out.print("---\nSystem with SchedulerScanner status\n---\n");
-                for (ElevatorStatus status : systemScanner.getElevatorsStatuses())
-                    System.out.println(status);
-
-            } else if (option.equals("end")) {
-                loop = false;
-            } else if (option.equals("usage")) {
-                System.out.println(usage);
-            } else {
-                System.err.println("Unrecognized option.");
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid simulation argument!");
+                System.out.println(e.getMessage());
             }
         }
 
@@ -138,6 +145,7 @@ public class Simulation {
             systemFCFS.makeSimulationStep();
             stepsFCFS++;
         }
+
         printSimulationResults(stepsFCFS, stepsScanner, totalRequestsCount);
     }
 }

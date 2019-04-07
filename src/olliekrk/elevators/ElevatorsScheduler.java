@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface ElevatorsScheduler {
     /**
-     * Method to enqueue external requests of type UP and DOWN.
+     * Enqueues external requests of type UP and DOWN to chosen available elevator controller.
      *
      * @param request             pickup request to be enqueued
      * @param elevatorControllers elevator controllers available in the system
@@ -25,7 +25,7 @@ public interface ElevatorsScheduler {
     void enqueuePickupRequest(Request request, Collection<ElevatorController> elevatorControllers) throws ElevatorsSchedulerException;
 
     /**
-     * Method to enqueue internal requests of type FLOOR and RESTART.
+     * Enqueues internal requests of type FLOOR and RESTART to given elevator controller.
      *
      * @param request    internal request to be enqueued
      * @param controller elevator controller which sent the request
@@ -34,6 +34,14 @@ public interface ElevatorsScheduler {
      */
     void enqueueInternalRequest(Request request, ElevatorController controller) throws ElevatorsSchedulerException;
 
+    /**
+     * Enqueues request of type RESTART to given elevator controller.
+     *
+     * @param request    restart request to be enqueued
+     * @param controller elevator controller to receive restart request
+     * @throws ElevatorsSchedulerException when request has invalid type - other than RESTART
+     * @see RequestType for more detailed information
+     */
     default void enqueueRestartRequest(Request request, ElevatorController controller) throws ElevatorsSchedulerException {
         if (request == null || request.getRequestType() != RequestType.RESTART) {
             throw new ElevatorsSchedulerException("Invalid restart request received");
@@ -44,6 +52,14 @@ public interface ElevatorsScheduler {
         controller.setRequestsQueue(restartedQueue);
     }
 
+    /**
+     * Enqueues EVACUATION requests to every available elevator's controller
+     *
+     * @param request evacuation request to be enqueued
+     * @param elevatorControllers collection of controllers to receive the request
+     * @throws ElevatorsSchedulerException when request has invalid type - other than EVACUATION
+     * @see RequestType for more detailed information
+     */
     default void enqueueEvacuationRequest(Request request, Collection<ElevatorController> elevatorControllers) throws ElevatorsSchedulerException {
         if (request == null || request.getRequestType() != RequestType.EVACUATION) {
             throw new ElevatorsSchedulerException("Invalid evacuation request received");

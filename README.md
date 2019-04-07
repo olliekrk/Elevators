@@ -204,7 +204,8 @@ Otherwise put it at the end of the queue.
 - Elevator is able to pick requests "on the way"
 - Average awaiting time and overall requests completion time is shortened in most cases
 - Also guarantees that every request will be served
-- Requests at the midrange will be serviced more often
+- Requests at the mid-range will be serviced more often
+- Resistant to "corrupted" cases of requests
 
 **Disadvantages of this approach**:
 - The algorithm is much more complex and not so simple to understand
@@ -238,7 +239,10 @@ Type one of the following options:
 
 The usage is very intuitive.
 
-After typing `generate` new requests will be enqueued to both FCFS and Scanner systems.
+After typing `generate` new requests will be enqueued to both FCFS and Scanner systems in amount specified by the next argument.
+```
+How many records would you like to generate?
+```
 They are generated randomly, in an amount specified in Simulation class. Both systems will receive exactly the same new queue of requests.
 
 After typing `step` you'll see:
@@ -256,9 +260,9 @@ After typing `status` both system will print its statuses to the console.
 
 In the project I made several simple tests to see whether implemented algorithms work properly and cover certain cases.
 
-Tests are located in the `test.olliekrk.elevators` package.
+They are located in the `test.olliekrk.elevators` package.
 
-There are still many things that could be improved in those tests, which I would like to do in the future.
+There are still many things that could be improved in those tests, as they cover only simple cases.
 
 ## Author
 * **Olgierd Królik** - [GitHub](https://github.com/olliekrk) - other projects
@@ -272,6 +276,6 @@ There are still many things that could be improved in those tests, which I would
  When choosing an elevator to receive external pickup request choose elevators in this order
  (2 and 3 is switched compared to the original version)
 >1. Check for inactive elevator on the requested floor
->2. Check for inactive elevators on all other floors
->3. Check for elevators moving towards requested floor in the requested direction
+>2. Check for elevators moving towards requested floor in the requested direction
+>3. Check for inactive elevators on all other floors
 >4. Check for elevators which will reach requested floor first

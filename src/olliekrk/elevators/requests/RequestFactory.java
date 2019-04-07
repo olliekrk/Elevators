@@ -1,7 +1,7 @@
 package olliekrk.elevators.requests;
 
 /**
- * Factory class, used to create valid {@link Request} instances.
+ * Factory class, used to create valid and safe to be scheduled {@link Request} instances.
  * Part of an "Factory" design pattern.
  *
  * @see RequestType for more information

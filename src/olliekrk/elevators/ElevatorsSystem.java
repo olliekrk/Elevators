@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * Class which is an entry point for this project.
- * Provides interface with all necessary methods to manage the system and to simulate how the system works.
+ * Provides interface with all necessary methods to manage the system and to simulate the system's behaviour.
  */
 public class ElevatorsSystem {
     /**
@@ -28,6 +28,11 @@ public class ElevatorsSystem {
      */
     private ElevatorsScheduler scheduler;
 
+    /**
+     * Creates a new elevators system and assigns given {@link ElevatorsScheduler} to schedule incoming requests.
+     *
+     * @param scheduler scheduler to be used for enqueuing requests
+     */
     public ElevatorsSystem(ElevatorsScheduler scheduler) {
         this.elevatorControllers = new HashMap<>(ELEVATORS_LIMIT * 2);
         this.scheduler = scheduler;
@@ -45,7 +50,7 @@ public class ElevatorsSystem {
 
     /**
      * Send a new request to be enqueued to the right elevator's controller.
-     * Method of {@link ElevatorsScheduler} interface (strategy design pattern).
+     * Calls corresponding method of {@link ElevatorsScheduler} interface (strategy design pattern).
      * The scheduler uses an algorithm to assign the request in its own manner to chosen controller.
      *
      * @param request request to be enqueued
@@ -74,6 +79,10 @@ public class ElevatorsSystem {
 
     /**
      * Makes a single simulation step of elevators system's work schedule.
+     * <p>
+     * Every elevator controller checks its queue and performs single operation depending on first request in the queue.
+     *
+     * @see ElevatorController for more information about proceeding requests
      */
     public void makeSimulationStep() {
         for (ElevatorController controller : elevatorControllers.values()) {
@@ -83,6 +92,8 @@ public class ElevatorsSystem {
 
     /**
      * Registers new elevator in the system.
+     * The elevator which is being registered must have unique ID compared to already registered elevators.
+     * The limit of registered elevators cannot be exceeded.
      *
      * @param elevatorID ID of elevator to be registered
      * @param startFloor floor on which elevator starts its work
@@ -121,7 +132,7 @@ public class ElevatorsSystem {
     }
 
     /**
-     * Get summary report of every elevator registered in the system's status.
+     * Get summary information about every elevator registered in the system's status.
      *
      * @return list of {@link ElevatorStatus} statuses of system's elevators
      */
@@ -133,9 +144,9 @@ public class ElevatorsSystem {
     }
 
     /**
-     * Checks whether there are any unprocessed requests.
+     * Checks whether there are any awaiting requests in the system.
      *
-     * @return true if there are any requests in any controller's queue
+     * @return true if there are any requests in any controller's queue, otherwise false
      */
     public boolean isAnyRequestUnprocessed() {
         return !elevatorControllers
@@ -145,9 +156,9 @@ public class ElevatorsSystem {
     }
 
     /**
-     * Counts the total number of request enqueued in the system.
+     * Counts the total number of requests enqueued in the system.
      *
-     * @return total number of all request enqueued to the controllers
+     * @return total number of all requests enqueued to all controllers
      */
     public int numberOfRequestsEnqueued() {
         int totalRequests = 0;

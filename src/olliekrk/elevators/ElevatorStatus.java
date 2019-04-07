@@ -37,15 +37,13 @@ public class ElevatorStatus {
 
     @Override
     public String toString() {
-        StringBuilder stringStatus = new StringBuilder("Elevator status:");
-        stringStatus
+        return new StringBuilder("Elevator status:")
                 .append("\tID: ")
                 .append(elevatorID)
                 .append("\tCurrent floor: ")
                 .append(currentFloor)
                 .append("\tDestination floor: ")
-                .append(destinationFloor);
-
-        return stringStatus.toString();
+                .append(destinationFloor)
+                .toString();
     }
 }
