@@ -89,46 +89,47 @@ public class Simulation {
         while (loop) {
             try {
                 String option = scanner.next();
-
-                if (option.equals("generate")) {
-                    System.out.println("How many records would you like to generate?");
-                    int recordsCount = Integer.parseInt(scanner.next());
-                    requestsQueue = generateRequests(recordsCount);
-                    addRequests(systemFCFS, requestsQueue);
-                    addRequests(systemScanner, requestsQueue);
-                    totalRequestsCount += requestsQueue.size();
-
-                } else if (option.equals("step")) {
-                    System.out.println("How many steps further would you like to proceed?");
-                    int steps = Integer.parseInt(scanner.next());
-                    for (int i = 0; i < steps; i++) {
-                        if (systemFCFS.isAnyRequestUnprocessed()) {
-                            systemFCFS.makeSimulationStep();
-                            stepsFCFS++;
+                switch (option) {
+                    case "generate":
+                        System.out.println("How many records would you like to generate?");
+                        int recordsCount = Integer.parseInt(scanner.next());
+                        requestsQueue = generateRequests(recordsCount);
+                        addRequests(systemFCFS, requestsQueue);
+                        addRequests(systemScanner, requestsQueue);
+                        totalRequestsCount += requestsQueue.size();
+                        break;
+                    case "step":
+                        System.out.println("How many steps further would you like to proceed?");
+                        int steps = Integer.parseInt(scanner.next());
+                        for (int i = 0; i < steps; i++) {
+                            if (systemFCFS.isAnyRequestUnprocessed()) {
+                                systemFCFS.makeSimulationStep();
+                                stepsFCFS++;
+                            }
+                            if (systemScanner.isAnyRequestUnprocessed()) {
+                                systemScanner.makeSimulationStep();
+                                stepsScanner++;
+                            }
                         }
-                        if (systemScanner.isAnyRequestUnprocessed()) {
-                            systemScanner.makeSimulationStep();
-                            stepsScanner++;
-                        }
-                    }
+                        break;
+                    case "status":
+                        System.out.print("---\nSystem with SchedulerFCFS status\n---\n");
+                        for (ElevatorStatus status : systemFCFS.getElevatorsStatuses())
+                            System.out.println(status);
 
-                } else if (option.equals("status")) {
-                    System.out.print("---\nSystem with SchedulerFCFS status\n---\n");
-                    for (ElevatorStatus status : systemFCFS.getElevatorsStatuses())
-                        System.out.println(status);
-
-                    System.out.print("---\nSystem with SchedulerScanner status\n---\n");
-                    for (ElevatorStatus status : systemScanner.getElevatorsStatuses())
-                        System.out.println(status);
-
-                } else if (option.equals("end")) {
-                    loop = false;
-
-                } else if (option.equals("usage")) {
-                    System.out.println(usage);
-
-                } else {
-                    System.err.println("Unrecognized option.");
+                        System.out.print("---\nSystem with SchedulerScanner status\n---\n");
+                        for (ElevatorStatus status : systemScanner.getElevatorsStatuses())
+                            System.out.println(status);
+                        break;
+                    case "end":
+                        loop = false;
+                        break;
+                    case "usage":
+                        System.out.println(usage);
+                        break;
+                    default:
+                        System.err.println("Unrecognized option.");
+                        break;
                 }
             } catch (NumberFormatException e) {
                 System.err.println("Invalid simulation argument!");
