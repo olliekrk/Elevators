@@ -20,6 +20,7 @@ import java.util.Scanner;
 public class Simulation {
     private static final int ELEVATORS_NO = 5;
     private static final int FLOORS_NO = 20;
+    private static final String usage = "Type one of the following options:\n\tgenerate\n\tstep\n\tstatus\n\tend\n\tusage\n";
 
     public static void main(String[] args) {
         ElevatorsSystem systemFCFS = new ElevatorsSystem(new SchedulerFCFS());
@@ -147,6 +148,4 @@ public class Simulation {
         System.out.println("Total steps Scanner: " + stepsScanner);
         System.out.printf("Average steps per request: %.3f\n", (double) stepsScanner / totalRequestsCount);
     }
-
-    private static final String usage = "Type one of the following options:\n\tgenerate\n\tstep\n\tstatus\n\tend\n\tusage\n";
 }

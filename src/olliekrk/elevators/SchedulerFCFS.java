@@ -51,7 +51,8 @@ public class SchedulerFCFS implements ElevatorsScheduler {
         boolean alreadyEnqueued = chosenController
                 .getRequestsQueue()
                 .stream()
-                .anyMatch(enqueuedRequest -> enqueuedRequest.getFloor().equals(request.getFloor()));
+                .anyMatch(enqueuedRequest ->
+                        (request.getRequestType() == FLOOR && enqueuedRequest.getFloor().equals(request.getFloor())) || request.equals(enqueuedRequest));
 
         //if not then put it at the end of chosen controller's queue (FC-FS strategy)
         if (!alreadyEnqueued) {
